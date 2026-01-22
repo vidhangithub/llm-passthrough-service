@@ -1,0 +1,4 @@
+# Place your certificates here:
+# - tls.key (private key)
+# - tls.crt (client certificate)
+# - ca.crt (CA certificate)

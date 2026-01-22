@@ -1,0 +1,50 @@
+# Compiled class files
+*.class
+
+# Log files
+*.log
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+.factorypath
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Application
+application-local.yml
+application-dev.yml
+
+# Certificates - DO NOT commit real certs
+src/main/resources/certs/*.key
+src/main/resources/certs/*.crt
+src/main/resources/certs/*.pem
+src/main/resources/certs/*.jks
+src/main/resources/certs/*.p12
+!src/main/resources/certs/.gitkeep
+
+# Environment files
+.env
+.env.local

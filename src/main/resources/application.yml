@@ -1,0 +1,61 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: llm-passthrough-service
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+
+# APIGEE Configuration
+apigee:
+  url: https://eny-apgi01-euwe2.dmz-int.oncp.group/int01/control-plane-api/v1/chat/completions
+  client-id: ${APIGEE_CLIENT_ID:your-client-id}
+  client-secret: ${APIGEE_CLIENT_SECRET:your-client-secret}
+  ssl:
+    enabled: true
+    # Option 1: Use PEM certificates directly
+    tls-key-path: classpath:certs/tls.key
+    tls-cert-path: classpath:certs/tls.crt
+    ca-cert-path: classpath:certs/ca.crt
+    # Option 2: Use Java KeyStore/TrustStore (if you convert PEM to JKS)
+    # key-store-path: classpath:certs/keystore.jks
+    # key-store-password: ${KEYSTORE_PASSWORD:changeit}
+    # trust-store-path: classpath:certs/truststore.jks
+    # trust-store-password: ${TRUSTSTORE_PASSWORD:changeit}
+
+# Actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.llm.passthrough: DEBUG
+    org.apache.hc.client5: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+---
+# Profile for local development without SSL
+spring:
+  config:
+    activate:
+      on-profile: local
+
+apigee:
+  ssl:
+    enabled: false
+
+logging:
+  level:
+    com.llm.passthrough: DEBUG
