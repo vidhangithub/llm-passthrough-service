@@ -9,6 +9,11 @@ import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.core5.ssl.SSLContextBuilder;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
@@ -23,17 +28,14 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.PrivateKey;
+import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * SSL Configuration that supports loading PEM certificates directly.
@@ -44,6 +46,13 @@ import java.util.stream.Collectors;
 @Configuration
 @RequiredArgsConstructor
 public class SslConfig {
+
+    static {
+        // Register BouncyCastle provider for PEM parsing
+        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
+            Security.addProvider(new BouncyCastleProvider());
+        }
+    }
 
     private final ApigeeProperties apigeeProperties;
     private final ResourceLoader resourceLoader;
@@ -147,35 +156,33 @@ public class SslConfig {
     }
 
     /**
-     * Load a private key from PEM file (supports PKCS#8 format).
+     * Load a private key from PEM file.
+     * Supports both PKCS#1 (BEGIN RSA PRIVATE KEY) and PKCS#8 (BEGIN PRIVATE KEY) formats.
      */
     private PrivateKey loadPrivateKey(String keyPath) throws Exception {
         Resource resource = resourceLoader.getResource(keyPath);
-        String keyContent;
 
         try (InputStream is = resource.getInputStream();
-             BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
-            keyContent = reader.lines().collect(Collectors.joining("\n"));
-        }
+             InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+             PEMParser pemParser = new PEMParser(isr)) {
 
-        // Remove PEM headers and whitespace
-        String privateKeyPEM = keyContent
-                .replace("-----BEGIN PRIVATE KEY-----", "")
-                .replace("-----END PRIVATE KEY-----", "")
-                .replace("-----BEGIN RSA PRIVATE KEY-----", "")
-                .replace("-----END RSA PRIVATE KEY-----", "")
-                .replaceAll("\\s", "");
+            Object object = pemParser.readObject();
+            JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
 
-        byte[] decoded = Base64.getDecoder().decode(privateKeyPEM);
-        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decoded);
-
-        // Try RSA first, then EC
-        try {
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-            return keyFactory.generatePrivate(keySpec);
-        } catch (Exception e) {
-            KeyFactory keyFactory = KeyFactory.getInstance("EC");
-            return keyFactory.generatePrivate(keySpec);
+            if (object instanceof PEMKeyPair) {
+                // PKCS#1 format (BEGIN RSA PRIVATE KEY)
+                log.info("Loading PKCS#1 format private key");
+                PEMKeyPair keyPair = (PEMKeyPair) object;
+                return converter.getPrivateKey(keyPair.getPrivateKeyInfo());
+            } else if (object instanceof PrivateKeyInfo) {
+                // PKCS#8 format (BEGIN PRIVATE KEY)
+                log.info("Loading PKCS#8 format private key");
+                return converter.getPrivateKey((PrivateKeyInfo) object);
+            } else {
+                throw new IllegalArgumentException(
+                        "Unsupported private key format. Expected PKCS#1 or PKCS#8, got: " +
+                                (object != null ? object.getClass().getName() : "null"));
+            }
         }
     }
 

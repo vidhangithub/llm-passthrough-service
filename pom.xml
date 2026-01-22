@@ -35,6 +35,13 @@
             <version>5.3</version>
         </dependency>
 
+        <!-- BouncyCastle for PEM certificate parsing (PKCS#1 and PKCS#8) -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk18on</artifactId>
+            <version>1.77</version>
+        </dependency>
+
         <!-- Configuration processor -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
