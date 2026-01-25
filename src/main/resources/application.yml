@@ -12,6 +12,7 @@ spring:
 # APIGEE Configuration
 apigee:
   url: https://eny-apgi01-euwe2.dmz-int.oncp.group/int01/control-plane-api/v1/chat/completions
+  ocr-url: https://eny-apgi01-euwe2.dmz-int.oncp.group/int01/control-plane-api/v1/mistral/ocr
   client-id: ${APIGEE_CLIENT_ID:your-client-id}
   client-secret: ${APIGEE_CLIENT_SECRET:your-client-secret}
   ssl:

@@ -15,6 +15,9 @@ public class ApigeeProperties {
     @NotBlank(message = "APIGEE URL is required")
     private String url;
 
+    @NotBlank(message = "OCR URL is required")
+    private String ocrUrl;
+
     @NotBlank(message = "Client ID is required")
     private String clientId;
 

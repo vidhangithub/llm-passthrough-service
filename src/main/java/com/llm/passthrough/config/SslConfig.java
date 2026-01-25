@@ -75,6 +75,24 @@ public class SslConfig {
                 .build();
     }
 
+    @Bean
+    public RestClient ocrRestClient() throws Exception {
+        HttpClient httpClient = createHttpClient();
+        HttpComponentsClientHttpRequestFactory requestFactory =
+                new HttpComponentsClientHttpRequestFactory(httpClient);
+        requestFactory.setConnectTimeout(60000);
+        requestFactory.setConnectionRequestTimeout(60000);
+
+        return RestClient.builder()
+                .baseUrl(apigeeProperties.getOcrUrl())
+                .defaultHeader("x-lbg-client-id", apigeeProperties.getClientId())
+                .defaultHeader("x-lbg-client-secret", apigeeProperties.getClientSecret())
+                .defaultHeader("Content-Type", "application/json")
+                .defaultHeader("Accept", "application/json")
+                .requestFactory(requestFactory)
+                .build();
+    }
+
     private HttpClient createHttpClient() throws Exception {
         ApigeeProperties.Ssl ssl = apigeeProperties.getSsl();
 
