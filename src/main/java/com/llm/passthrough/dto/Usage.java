@@ -29,6 +29,12 @@ public class Usage {
     @JsonProperty("prompt_tokens_details")
     private PromptTokensDetails promptTokensDetails;
 
+    @JsonProperty("cache_creation_input_tokens")
+    private Integer cacheCreationInputTokens;
+
+    @JsonProperty("cache_read_input_tokens")
+    private Integer cacheReadInputTokens;
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -40,11 +46,5 @@ public class Usage {
 
         @JsonProperty("cached_tokens")
         private Integer cachedTokens;
-
-        @JsonProperty("cache_creation_input_tokens")
-        private Integer cacheCreationInputTokens;
-
-        @JsonProperty("cache_read_input_tokens")
-        private Integer cacheReadInputTokens;
     }
 }

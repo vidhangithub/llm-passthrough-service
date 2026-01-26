@@ -13,5 +13,6 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Message {
     private String role;
-    private String content;
+    // Supports both String (simple text) and List<ContentPart> (multimodal content)
+    private Object content;
 }
